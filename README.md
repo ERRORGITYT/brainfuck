@@ -11,6 +11,13 @@ Brainfuck interpreter written in C.
 
 The interactive console can be accessed by passing no arguments.    
 
+Quick examples:
+```sh
+brainfuck examples/hello.bf
+brainfuck --eval '++++++++[>++++++++<-]>+.+.'
+cat examples/hello.bf | brainfuck
+```
+
 We also provide a C api:
 
 ``` c
@@ -43,6 +50,15 @@ $ git clone https://github.com/fabianishere/brainfuck.git
 or simply [grab](https://github.com/fabianishere/brainfuck/archive/master.zip) a copy of the source code as a Zip file.
 
 ## Building
+The quickest way to build and test the project is with the included Makefile:
+```sh
+$ make
+$ make test
+```
+
+The `run` target accepts a source file, for example `make run FILE=examples/hello.bf`.
+For a manual CMake build, use the steps below.
+
 Create the build directory.
 ```sh
 $ mkdir build
