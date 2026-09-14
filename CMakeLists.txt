@@ -12,6 +12,16 @@ option(ENABLE_CLI "Enable the command line interface" ON)
 option(ENABLE_EDITLINE "Enable GNU readline functionality provided by the editline library" ON)
 option(ENABLE_EXTENSION_DEBUG "Enable the debug extension for brainfuck")
 option(INSTALL_EXAMPLES "Install the examples")
+option(ENABLE_FAST_LOOPS "Optimize simple clearing loops such as [-]" ON)
+
+# editline is not available in the Android NDK and is not needed for the
+# Windows build. The CLI still works on both platforms without it.
+if(ANDROID)
+    set(ENABLE_CLI OFF CACHE BOOL "Enable the command line interface" FORCE)
+    set(ENABLE_EDITLINE OFF CACHE BOOL "Enable GNU readline functionality provided by the editline library" FORCE)
+elseif(WIN32)
+    set(ENABLE_EDITLINE OFF CACHE BOOL "Enable GNU readline functionality provided by the editline library" FORCE)
+endif()
 
 ## Target ##
 set(BRAINFUCK_H include/brainfuck.h)
@@ -31,6 +41,9 @@ target_compile_definitions(brainfuck PUBLIC
     "-DBRAINFUCK_VERSION_MINOR=${PROJECT_VERSION_MINOR}"
     "-DBRAINFUCK_VERSION_PATCH=${PROJECT_VERSION_PATCH}"
 )
+if(ENABLE_FAST_LOOPS)
+    target_compile_definitions(brainfuck PRIVATE BRAINFUCK_ENABLE_FAST_LOOPS)
+endif()
 target_compile_features(brainfuck PRIVATE c_std_90)
 target_compile_options(brainfuck PRIVATE ${BRAINFUCK_C_FLAGS})
 

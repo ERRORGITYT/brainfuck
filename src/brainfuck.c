@@ -512,9 +512,21 @@ void brainfuck_execute(BrainfuckInstruction *root, BrainfuckExecutionContext *co
 				}
 			}
 			break;
-		case BRAINFUCK_TOKEN_LOOP_START:
-			while(context->tape[context->tape_index])
-				brainfuck_execute(instruction->loop, context);
+			case BRAINFUCK_TOKEN_LOOP_START:
+			#ifdef BRAINFUCK_ENABLE_FAST_LOOPS
+				/* The idioms [-] and [+] both clear the current cell. */
+				if (instruction->loop != NULL &&
+						(instruction->loop->type == BRAINFUCK_TOKEN_MINUS ||
+						 instruction->loop->type == BRAINFUCK_TOKEN_PLUS) &&
+						instruction->loop->difference == 1 &&
+						instruction->loop->next != NULL &&
+						instruction->loop->next->type == BRAINFUCK_TOKEN_LOOP_END) {
+					context->tape[context->tape_index] = 0;
+					break;
+				}
+			#endif
+				while(context->tape[context->tape_index])
+					brainfuck_execute(instruction->loop, context);
 			break;
 		case BRAINFUCK_TOKEN_BREAK: {
 			int low  = context->tape_index - 10;

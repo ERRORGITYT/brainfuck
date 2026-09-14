@@ -59,6 +59,18 @@ $ make test
 The `run` target accepts a source file, for example `make run FILE=examples/hello.bf`.
 For a manual CMake build, use the steps below.
 
+### Windows
+Use Visual Studio or MinGW with CMake:
+```powershell
+cmake -S . -B build -A x64 -DENABLE_EDITLINE=OFF -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release
+ctest --test-dir build -C Release --output-on-failure
+```
+The bundled `getopt` compatibility header is used automatically when the platform does not provide `getopt`.
+
+### Android
+The core library supports Android NDK builds. The CLI and editline console are optional; for Android applications, build the static library with `-DENABLE_CLI=OFF`. See [`android/README.md`](/android/README.md) for ABI-specific commands.
+
 Create the build directory.
 ```sh
 $ mkdir build
