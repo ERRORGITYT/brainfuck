@@ -43,6 +43,7 @@ BrainfuckExecutionContext * brainfuck_context(int size) {
 		size = BRAINFUCK_TAPE_SIZE;
 
 	unsigned char* tape = calloc(size, sizeof(char));
+	uint64_t* tape_accesses = calloc(size, sizeof(uint64_t));
 	
 	BrainfuckExecutionContext *context = (BrainfuckExecutionContext *) 
 			malloc(sizeof(BrainfuckExecutionContext));
@@ -50,9 +51,11 @@ BrainfuckExecutionContext * brainfuck_context(int size) {
 	context->output_handler = &putchar;
 	context->input_handler = &brainfuck_getchar;
 	context->tape = tape;
+	context->tape_accesses = tape_accesses;
 	context->tape_index = 0;
 	context->tape_size = size;
 	context->shouldStop = 0;
+	context->total_tape_accesses = 0;
 	return context;
 }
 
@@ -474,7 +477,10 @@ void brainfuck_destroy_state(BrainfuckState *state) {
  * @param context The context to destroy
  */
 void brainfuck_destroy_context(BrainfuckExecutionContext *context) {
+	if (context == NULL)
+		return;
 	free(context->tape);
+	free(context->tape_accesses);
 	free(context);
 	context = 0;
 }
@@ -493,6 +499,10 @@ void brainfuck_execute(BrainfuckInstruction *root, BrainfuckExecutionContext *co
 	BrainfuckInstruction *instruction = root;
 	int index;
 	while (instruction != NULL && instruction->type != BRAINFUCK_TOKEN_LOOP_END) {
+		if (context->tape_accesses != NULL) {
+			context->tape_accesses[context->tape_index]++;
+			context->total_tape_accesses++;
+		}
 		switch (instruction->type) {
 		case BRAINFUCK_TOKEN_PLUS:
 			context->tape[context->tape_index] += instruction->difference;

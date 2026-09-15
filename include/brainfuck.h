@@ -16,6 +16,8 @@
 #ifndef BRAINFUCK_H
 #define BRAINFUCK_H
 
+#include <stdint.h>
+
 #define BRAINFUCK_TAPE_SIZE 30000
 /* 1: EOF leaves cell unchanged; 0: EOF == 0; 1: EOF ==  1 */
 #define BRAINFUCK_EOF_BEHAVIOR 1
@@ -110,6 +112,8 @@ typedef struct BrainfuckExecutionContext {
 	 * An array containing the memory cells the program can use.
 	 */
 	unsigned char *tape;
+	/** Number of times each tape cell has been accessed during execution. */
+	uint64_t *tape_accesses;
 	/**
 	 * Index into <code>tape</code>. Modified during execution.
 	 */
@@ -122,7 +126,9 @@ typedef struct BrainfuckExecutionContext {
 	 * A flag that, if set to true, indicates that execution should stop.
 	 */
 	int shouldStop;
-} BrainfuckExecutionContext;
+	/** Total number of tape accesses recorded for this context. */
+	uint64_t total_tape_accesses;
+	} BrainfuckExecutionContext;
 
 /**
  * Creates a new state.

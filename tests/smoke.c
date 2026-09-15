@@ -32,6 +32,8 @@ int main() {
     assert(output_buffer[0] == 1);
     assert(output_buffer[1] == 11);
     assert(output_buffer[2] == 8);
+    assert(context->tape_accesses[0] == 6);
+    assert(context->total_tape_accesses == 6);
     brainfuck_destroy_context(context);
     brainfuck_destroy_state(state);
     return EXIT_SUCCESS;

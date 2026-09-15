@@ -46,6 +46,8 @@ int main() {
 }
 ```
 
+After execution, `context->tape_accesses[i]` contains the number of instruction-level accesses recorded for tape cell `i`, and `context->total_tape_accesses` contains the aggregate count. These counters are allocated with the execution context and are useful for profilers and memory heatmaps.
+
 ## Examples
 The [examples/](/examples) directory contains a large amount of 
 brainfuck example programs. We have tried to attribute the original
