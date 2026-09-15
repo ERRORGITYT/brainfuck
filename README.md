@@ -1,126 +1,139 @@
-brainfuck
-[![Build Status](https://github.com/fabianishere/brainfuck/workflows/Build/badge.svg)](https://github.com/fabianishere/brainfuck/actions?query=workflow%3ABuild)
-===========
-Brainfuck interpreter written in C.
+# brainfuck
+
+Brainfuck interpreter written in C, with Windows and Android build guidance, optional fast clearing loops, numeric arithmetic shorthand, and execution telemetry for memory heatmaps.
+
+This repository is maintained as a private fork by [ERRORGITYT](https://github.com/ERRORGITYT). The upstream project is [fabianishere/brainfuck](https://github.com/fabianishere/brainfuck).
 
 ## Usage
-    brainfuck [-veh] file...
-	-e --eval	run code directly
-	-v --version	show version information
-	-h --help	show a help message.
 
-The interactive console can be accessed by passing no arguments.    
+```text
+brainfuck [-veh] file...
+    -e, --eval       run code directly
+    -v, --version    show version information
+    -h, --help       show a help message
+```
 
-Quick examples:
+Run the interactive console by passing no arguments.
+
 ```sh
 brainfuck examples/hello.bf
 brainfuck --eval '++++++++[>++++++++<-]>+.+.'
 cat examples/hello.bf | brainfuck
 ```
 
-### Numeric shorthand
-Cell and pointer operations accept a decimal count, which is expanded by the parser without changing classic Brainfuck syntax:
+## Numeric shorthand
+
+A decimal count may follow `+` or `-`. The parser treats the count as repeated arithmetic operations while preserving ordinary Brainfuck syntax:
 
 ```sh
 brainfuck --eval '+1.+10.-3.'
 ```
 
-The example increments the first cell to `1`, then to `11`, then down to `8`. Plain `+`, `-`, `<`, and `>` remain fully compatible. Numeric shorthand is especially useful for readable experiments and generated programs.
+The program outputs the cell values `1`, `11`, and `8`. `+` and `-` without a number continue to mean one increment or decrement. Counts are capped by the parser to avoid unbounded expansion from accidental input.
 
-We also provide a C api:
+## C API
 
-``` c
+The library can be embedded in another C program. Read any telemetry before destroying the execution context:
+
+```c
 #include <stdio.h>
 #include <stdlib.h>
 #include <brainfuck.h>
-    
-int main() {
-	BrainfuckState *state = brainfuck_state();
-	BrainfuckExecutionContext *context = brainfuck_context(BRAINFUCK_TAPE_SIZE);
-	BrainfuckInstruction *instruction = brainfuck_parse_string(",+++++.");
- 	brainfuck_add(state, instruction);
- 	brainfuck_execute(state->root, context);
-	brainfuck_destroy_context(context);
- 	brainfuck_destroy_state(state);
-	return EXIT_SUCCESS;
+
+int main(void) {
+    BrainfuckState *state = brainfuck_state();
+    BrainfuckExecutionContext *context = brainfuck_context(BRAINFUCK_TAPE_SIZE);
+    BrainfuckInstruction *instruction = brainfuck_parse_string(",+++++.");
+
+    brainfuck_add(state, instruction);
+    brainfuck_execute(state->root, context);
+
+    /* The counters are valid until brainfuck_destroy_context(). */
+    printf("cell 0 accesses: %llu\n",
+           (unsigned long long) context->tape_accesses[0]);
+    printf("total tape accesses: %llu\n",
+           (unsigned long long) context->total_tape_accesses);
+
+    brainfuck_destroy_context(context);
+    brainfuck_destroy_state(state);
+    return EXIT_SUCCESS;
 }
 ```
 
-After execution, `context->tape_accesses[i]` contains the number of instruction-level accesses recorded for tape cell `i`, and `context->total_tape_accesses` contains the aggregate count. These counters are allocated with the execution context and are useful for profilers and memory heatmaps.
+During execution, `context->tape_accesses[i]` records how many executed instructions selected tape cell `i`, while `context->total_tape_accesses` records the aggregate count. These counters are intended for profilers, debuggers, and memory heatmaps.
 
 ## Examples
-The [examples/](/examples) directory contains a large amount of 
-brainfuck example programs. We have tried to attribute the original
-authors of these programs where possible.
+
+The [`examples/`](https://github.com/ERRORGITYT/brainfuck/tree/master/examples) directory contains Brainfuck programs. Original authors are credited where known.
 
 ## Getting the source
-Download the source code by running the following code in your command prompt:
-```sh
-$ git clone https://github.com/fabianishere/brainfuck.git
-```
-or simply [grab](https://github.com/fabianishere/brainfuck/archive/master.zip) a copy of the source code as a Zip file.
 
-## Building
-The quickest way to build and test the project is with the included Makefile:
+Because this fork is private, clone it only when your GitHub account has access:
+
 ```sh
-$ make
-$ make test
+gh repo clone ERRORGITYT/brainfuck
+# or
+git clone https://github.com/ERRORGITYT/brainfuck.git
 ```
 
-The `run` target accepts a source file, for example `make run FILE=examples/hello.bf`.
-For a manual CMake build, use the steps below.
+To inspect the upstream implementation and history, visit [fabianishere/brainfuck](https://github.com/fabianishere/brainfuck).
+
+## Building and testing
+
+The quickest local workflow is:
+
+```sh
+make
+make test
+```
+
+To run an example:
+
+```sh
+make run FILE=examples/hello.bf
+```
+
+For a manual CMake build, Brainfuck requires CMake and a C compiler. The desktop CLI optionally uses [libedit](http://thrysoee.dk/editline/).
+
+```sh
+cmake -S . -B build -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
 
 ### Windows
-Use Visual Studio or MinGW with CMake:
+
+Use Visual Studio or MinGW with CMake. Editline is disabled automatically on Windows:
+
 ```powershell
-cmake -S . -B build -A x64 -DENABLE_EDITLINE=OFF -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build -A x64 -DENABLE_EDITLINE=OFF
 cmake --build build --config Release
 ctest --test-dir build -C Release --output-on-failure
 ```
-The bundled `getopt` compatibility header is used automatically when the platform does not provide `getopt`.
+
+The bundled `getopt` compatibility header is used when the platform does not provide `getopt`.
 
 ### Android
-The core library supports Android NDK builds. The CLI and editline console are optional; for Android applications, build the static library with `-DENABLE_CLI=OFF`. See [`android/README.md`](/android/README.md) for ABI-specific commands.
 
-Create the build directory.
-```sh
-$ mkdir build
-$ cd build
-```
-Brainfuck requires CMake and a C compiler (e.g. Clang or GCC) in order to run. It also depends on [libedit](http://thrysoee.dk/editline/), which is available in the main repositories of most Linux distributions (e.g. as [libedit-dev](https://packages.debian.org/stretch/libedit-dev) on Debian/Ubuntu) and comes with the macOS XCode command line tools. 
-Then, simply create the Makefiles:
-```sh
-$ cmake ..
-```
-and finally, build it using the building system you chose (e.g. Make):
-```sh
-$ make
-```
-
-After the build has been finished, you may install the binaries to your local system (see [CMAKE\_INSTALL\_PREFIX](https://cmake.org/cmake/help/v3.0/variable/CMAKE_INSTALL_PREFIX.html) for information about the install prefix):
-```sh
-$ make install
-```
-Alternatively, you may run the interpreter directly without installation, for instance:
-```sh
-$ ./brainfuck ../examples/hello.bf
-```
+The interpreter core can be built with the Android NDK. The desktop CLI and editline console are disabled automatically for Android builds. See [`android/README.md`](https://github.com/ERRORGITYT/brainfuck/tree/master/android) for NDK and ABI guidance.
 
 ## License
-The code is released under the Apache License version 2.0. See [LICENSE.txt](/LICENSE.txt).
 
-## Contributors
-	Fabian Mastenbroek https://github.com/fabianishere
-	aliclubb https://github.com/aliclubb
-	diekmann https://github.com/diekmann
-	SevenBits https://github.com/SevenBits
-	Alex Burka https://github.com/durka
-	outis https://github.com/outis
-	rien333 https://github.com/rien333
-	boweiliu https://github.com/boweiliu
-	Rotartsi https://github.com/ROTARTSI82
-	Saket Upadhyay https://github.com/Saket-Upadhyay
-	outis https://github.com/outis
-	Jalmari91 https://github.com/Jalmari91
-	Alok Singh https://github.com/alok
-	Lasse Damsgaard Skaalum https://github.com/humleflue
+The code is released under the [Apache License 2.0](LICENSE.txt).
+
+## Contributors and repository history
+
+GitHub may show contributors in this private repository because the repository contains the upstream project's commit history. Those names represent authors of inherited upstream commits; they do **not** mean those people contributed to this private fork after it was created. Private visibility changes who can access the repository, not the authorship recorded in its history.
+
+Fork-specific changes by ERRORGITYT are visible in the recent commit history, including the quality-of-life improvements, Windows and Android support, numeric shorthand, fast loops, and tape access counters.
+
+For the upstream contributor history, see the [upstream repository](https://github.com/fabianishere/brainfuck) and its [contributors page](https://github.com/fabianishere/brainfuck/graphs/contributors).
+
+```text
+Private fork · maintained by ERRORGITYT · upstream history preserved
+```
+
+<!--
+  Note for maintainers: do not add a manually copied contributor list here.
+  Git history and GitHub's contributors view are the source of truth.
+-->
