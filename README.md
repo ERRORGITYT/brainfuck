@@ -2,7 +2,7 @@
 
 Brainfuck interpreter written in C, with Windows and Android build guidance, optional fast clearing loops, numeric arithmetic shorthand, and execution telemetry for memory heatmaps.
 
-This repository is maintained as a private fork by [ERRORGITYT](https://github.com/ERRORGITYT). The upstream project is [fabianishere/brainfuck](https://github.com/fabianishere/brainfuck).
+This repository is maintained by [ERRORGITYT](https://github.com/ERRORGITYT), based on the upstream project [fabianishere/brainfuck](https://github.com/fabianishere/brainfuck).
 
 ## Usage
 
@@ -68,7 +68,7 @@ The [`examples/`](https://github.com/ERRORGITYT/brainfuck/tree/master/examples) 
 
 ## Getting the source
 
-Because this fork is private, clone it only when your GitHub account has access:
+Clone the public repository with Git or GitHub CLI:
 
 ```sh
 gh repo clone ERRORGITYT/brainfuck
@@ -93,10 +93,10 @@ To run an example:
 make run FILE=examples/hello.bf
 ```
 
-For a manual CMake build, Brainfuck requires CMake and a C compiler. The desktop CLI optionally uses [libedit](http://thrysoee.dk/editline/).
+For a manual CMake build, Brainfuck requires CMake and a C compiler. The desktop CLI can use [libedit](http://thrysoee.dk/editline/), but the portable build below disables that optional dependency:
 
 ```sh
-cmake -S . -B build -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build -DBUILD_TESTING=ON -DENABLE_EDITLINE=OFF -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ctest --test-dir build --output-on-failure
 ```
@@ -117,20 +117,24 @@ The bundled `getopt` compatibility header is used when the platform does not pro
 
 The interpreter core can be built with the Android NDK. The desktop CLI and editline console are disabled automatically for Android builds. See [`android/README.md`](https://github.com/ERRORGITYT/brainfuck/tree/master/android) for NDK and ABI guidance.
 
+## Releases
+
+Stable source releases are published on the [GitHub Releases page](https://github.com/ERRORGITYT/brainfuck/releases). The current consolidated release is [v2.8.0](https://github.com/ERRORGITYT/brainfuck/releases/tag/v2.8.0).
+
 ## License
 
 The code is released under the [Apache License 2.0](LICENSE.txt).
 
 ## Contributors and repository history
 
-GitHub may show contributors in this private repository because the repository contains the upstream project's commit history. Those names represent authors of inherited upstream commits; they do **not** mean those people contributed to this private fork after it was created. Private visibility changes who can access the repository, not the authorship recorded in its history.
+Some contributors shown by GitHub are authors from the inherited upstream commit history. They are included for historical attribution and are not necessarily contributors to the changes made in this repository.
 
-Fork-specific changes by ERRORGITYT are visible in the recent commit history, including the quality-of-life improvements, Windows and Android support, numeric shorthand, fast loops, and tape access counters.
+Fork-specific changes by ERRORGITYT include the quality-of-life improvements, Windows and Android support, numeric shorthand, fast loops, tape access counters, memory heatmap telemetry, and documentation updates.
 
-For the upstream contributor history, see the [upstream repository](https://github.com/fabianishere/brainfuck) and its [contributors page](https://github.com/fabianishere/brainfuck/graphs/contributors).
+For the upstream contributor history, see the [upstream repository](https://github.com/fabianishere/brainfuck) and its [contributors page](https://github.com/fabianishere/brainfuck/graphs/contributors). Contributions and pull requests to this public repository are welcome.
 
 ```text
-Private fork · maintained by ERRORGITYT · upstream history preserved
+Maintained by ERRORGITYT · upstream history preserved
 ```
 
 <!--
