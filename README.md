@@ -18,6 +18,15 @@ brainfuck --eval '++++++++[>++++++++<-]>+.+.'
 cat examples/hello.bf | brainfuck
 ```
 
+### Numeric shorthand
+Cell and pointer operations accept a decimal count, which is expanded by the parser without changing classic Brainfuck syntax:
+
+```sh
+brainfuck --eval '+1.+10.-3.'
+```
+
+The example increments the first cell to `1`, then to `11`, then down to `8`. Plain `+`, `-`, `<`, and `>` remain fully compatible. Numeric shorthand is especially useful for readable experiments and generated programs.
+
 We also provide a C api:
 
 ``` c

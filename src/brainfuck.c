@@ -19,6 +19,7 @@
 #include <string.h>
 #include <limits.h>
 #include <assert.h>
+#include <ctype.h>
 
 #include <brainfuck.h>
 
@@ -221,10 +222,19 @@ BrainfuckInstruction * brainfuck_parse_stream_until(FILE *stream, const int unti
 		if (ch == EOF || feof(stream)) { break; }
 		instruction->type = ch;
 		instruction->difference = 1;
-		switch(ch) {
-		case BRAINFUCK_TOKEN_PLUS:
-		case BRAINFUCK_TOKEN_MINUS:
-			while ((temp = fgetc(stream)) != until && (temp == BRAINFUCK_TOKEN_PLUS 
+			switch(ch) {
+			case BRAINFUCK_TOKEN_PLUS:
+			case BRAINFUCK_TOKEN_MINUS:
+				if (isdigit((unsigned char) (temp = fgetc(stream)))) {
+					long value = temp - '0';
+					while (isdigit((unsigned char) (temp = fgetc(stream))))
+						value = value * 10 + (temp - '0');
+					if (temp != until && temp != EOF) ungetc(temp, stream);
+					instruction->difference = (int) value;
+					break;
+				}
+				if (temp != until && temp != EOF) ungetc(temp, stream);
+				while ((temp = fgetc(stream)) != until && (temp == BRAINFUCK_TOKEN_PLUS
 					|| temp == BRAINFUCK_TOKEN_MINUS)) {
 				if (temp == ch) {
 					instruction->difference++;
@@ -322,10 +332,19 @@ BrainfuckInstruction * brainfuck_parse_substring_incremental(char *str, int *ptr
 	for (; *ptr < end && (c = str[*ptr]); (*ptr)++) {
 			instruction->type = c;
 			instruction->difference = 1;
-			switch(c) {
-			case BRAINFUCK_TOKEN_PLUS:
-			case BRAINFUCK_TOKEN_MINUS:
-				(*ptr)++;
+				switch(c) {
+				case BRAINFUCK_TOKEN_PLUS:
+				case BRAINFUCK_TOKEN_MINUS:
+					if (*ptr + 1 < end && isdigit((unsigned char) str[*ptr + 1])) {
+						long value = 0;
+						(*ptr)++;
+						while (*ptr < end && isdigit((unsigned char) str[*ptr]))
+							value = value * 10 + (str[*ptr] - '0'), (*ptr)++;
+						(*ptr)--;
+						instruction->difference = (int) value;
+						break;
+					}
+					(*ptr)++;
 				for (; *ptr < end && (temp_c = str[*ptr]) && 
 						(temp_c == BRAINFUCK_TOKEN_PLUS || temp_c == BRAINFUCK_TOKEN_MINUS); (*ptr)++) {
 					if (temp_c == c) {
